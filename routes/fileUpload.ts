@@ -29,7 +29,14 @@ function handleZipFileUpload ({ file }: Request, res: Response, next: NextFuncti
     if (((file?.buffer) != null) && utils.isChallengeEnabled(challenges.fileWriteChallenge)) {
       const buffer = file.buffer
       const filename = file.originalname.toLowerCase()
-      const tempFile = path.join(os.tmpdir(), filename)
+
+      const originalName = file.originalname.toLowerCase()
+      const safeFileName = path.basename(originalName)
+      if (!safeFileName) {
+        return next(new Error('Invalid file name'))
+      }
+
+      const tempFile = path.join(os.tmpdir(), safeFileName)
       fs.open(tempFile, 'w', function (err, fd) {
         if (err != null) { next(err) }
         fs.write(fd, buffer, 0, buffer.length, null, function (err) {
